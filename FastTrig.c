@@ -1,8 +1,8 @@
 //
-//    FILE: FastTrig.cpp
-//  AUTHOR: Rob Tillaart
+//    FILE: FastTrig.c
+//  AUTHOR: Gabe Kaufman (.cpp file author Rob Tillaart)
 // VERSION: 0.3.3
-// PURPOSE: Arduino library for a faster approximation of sin() and cos()
+// PURPOSE: C library for a faster approximation of sin() and cos()
 //    DATE: 2011-08-18
 //     URL: https://github.com/RobTillaart/FastTrig
 //          https://forum.arduino.cc/index.php?topic=69723.0
