@@ -25,10 +25,6 @@ extern "C"
 {
 #endif
 
-extern uint16_t sinTable16[];
-extern uint8_t sinTable8[];
-
-
 ///////////////////////////////////////////////////////
 //
 //  GONIO INT EXPERIMENTAL
@@ -61,11 +57,10 @@ float iacos(float f);
 
 //  PLACEHOLDER (might be obsolete due to atanFast() formula.
 float iatan(float f);
+
 //  fast atan() formula, in fact a modified Taylor expansion
 //  input = -1 .. 1
 float atanFast(float f);
-
-inline float atanHelper(float x);
 
 //  atan2Fast() folds and mirrors => calls atanFast() + offset.
 float atan2Fast(float y, float x);

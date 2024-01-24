@@ -13,7 +13,7 @@
 
 //  91 x 2 bytes ==> 182 bytes
 //  use 65535.0 as divider
-uint16_t sinTable16[] = {
+static uint16_t sinTable16[] = {
   0,
 1145, 2289, 3435, 4572, 5716, 6853, 7989, 9125, 10255, 11385,
 12508, 13631, 14745, 15859, 16963, 18067, 19165, 20253, 21342, 22417,
@@ -45,19 +45,19 @@ uint16_t sinTable16[] = {
 */
 
 
-// use 255.0 as divider
-uint8_t sinTable8[] = {
-  0, 4, 9, 13, 18, 22, 27, 31, 35, 40, 44,
-  49, 53, 57, 62, 66, 70, 75, 79, 83, 87,
-  91, 96, 100, 104, 108, 112, 116, 120, 124, 128,
-  131, 135, 139, 143, 146, 150, 153, 157, 160, 164,
-  167, 171, 174, 177, 180, 183, 186, 190, 192, 195,
-  198, 201, 204, 206, 209, 211, 214, 216, 219, 221,
-  223, 225, 227, 229, 231, 233, 235, 236, 238, 240,
-  241, 243, 244, 245, 246, 247, 248, 249, 250, 251,
-  252, 253, 253, 254, 254, 254, 255, 255, 255, 255,
-  255
-};
+// // use 255.0 as divider
+// uint8_t sinTable8[] = {
+//   0, 4, 9, 13, 18, 22, 27, 31, 35, 40, 44,
+//   49, 53, 57, 62, 66, 70, 75, 79, 83, 87,
+//   91, 96, 100, 104, 108, 112, 116, 120, 124, 128,
+//   131, 135, 139, 143, 146, 150, 153, 157, 160, 164,
+//   167, 171, 174, 177, 180, 183, 186, 190, 192, 195,
+//   198, 201, 204, 206, 209, 211, 214, 216, 219, 221,
+//   223, 225, 227, 229, 231, 233, 235, 236, 238, 240,
+//   241, 243, 244, 245, 246, 247, 248, 249, 250, 251,
+//   252, 253, 253, 254, 254, 254, 255, 255, 255, 255,
+//   255
+// };
 
 
 ///////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ uint8_t sinTable8[] = {
 //
 int isin256(uint32_t v)
 {
-  bool negative = false;
+  bool is_negative = false;
 
   long whole = v;
 
@@ -78,7 +78,7 @@ int isin256(uint32_t v)
   if (y >= 180)
   {
     y -= 180;
-    negative = true;
+    is_negative = true;
   }
 
   if (y >= 90)
@@ -87,7 +87,7 @@ int isin256(uint32_t v)
   }
 
   int g = sinTable16[y] >> 8;
-  if (negative) return -g;
+  if (is_negative) return -g;
   return g;
 }
 
@@ -138,11 +138,14 @@ void isincos256(uint32_t v, int *si, int *co)
 //
 float isin(float f)
 {
-  bool negative = (f < 0);
-  if (negative)
+  // Convert to degrees
+  f *= 180 * M_1_PI;
+
+  bool is_negative = (f < 0);
+  if (is_negative)
   {
     f = -f;
-    negative = true;
+    is_negative = true;
   }
 
   long whole = f;
@@ -161,7 +164,7 @@ float isin(float f)
   if (y >= 180)
   {
     y -= 180;
-    negative = !negative;
+    is_negative = !is_negative;
   }
 
   if (y >= 90)
@@ -183,15 +186,14 @@ float isin(float f)
     value = value + ((sinTable16[y + 1] - value) / 8 * remain) / 32;   //  == * remain / 256
   }
   float g = value * 0.0000152590219;  //  = / 65535.0
-  if (negative) return -g;
+  if (is_negative) return -g;
   return g;
 }
 
 
 float icos(float x)
 {
-  //  prevent modulo math if x in 0..360
-  return isin(x - 270.0);  //  better than x + 90;
+  return isin(x + M_PI_2);
 }
 
 
@@ -286,8 +288,8 @@ float itan(float f)
 
   //  FOLDING
   bool mirror = false;
-  bool negative = (f < 0);
-  if (negative) f = -f;
+  bool is_negative = (f < 0);
+  if (is_negative) f = -f;
 
   long whole = f;
   float remain = f - whole;
@@ -296,7 +298,7 @@ float itan(float f)
   if (value > 90)
   {
     value = 180 - value;
-    negative = !negative;
+    is_negative = !is_negative;
     mirror = true;
   }
   uint8_t d = value;
@@ -317,7 +319,7 @@ float itan(float f)
   if (remain != 0) si += remain * (sinTable16[d + 1]  - sinTable16[d]);
 
   float ta = si/co;
-  if (negative) return -ta;
+  if (is_negative) return -ta;
   return ta;
 }
 
@@ -337,11 +339,11 @@ float icot(float f)
 //
 float iasin(float f)
 {
-  bool negative = (f < 0);
-  if (negative)
+  bool is_negative = (f < 0);
+  if (is_negative)
   {
     f = -f;
-    negative = true;
+    is_negative = true;
   }
   uint16_t value = round(f * 65535);
   uint8_t lo = 0;
@@ -352,7 +354,7 @@ float iasin(float f)
     uint8_t mi = (lo + hi) / 2;
     if (sinTable16[mi] == value)
     {
-      if (negative) return -mi;
+      if (is_negative) return -mi;
       return mi;
     }
     if (sinTable16[mi] < value) lo = mi;
@@ -361,7 +363,7 @@ float iasin(float f)
   float delta = value - sinTable16[lo];
   uint16_t range = sinTable16[hi] - sinTable16[lo];
   delta /= range;
-  if (negative) return -(lo + delta);
+  if (is_negative) return -(lo + delta);
   return (lo + delta);
 }
 
@@ -379,22 +381,22 @@ float iatan(float f)
 }
 
 
-float atanFast(float x)
-{
-  //  remove two test will limit the input range but makes it even faster.
-  if ( x > 1)  return ( M_PI / 2) - atanHelper(1.0 / x);
-  if ( x < -1) return (-M_PI / 2) - atanHelper(1.0 / x);
-  return atanHelper(x);
-}
-
-
-inline float atanHelper(float x)
+static inline float atanHelper(float x)
 {
   float x2 = x * x;
   return (((0.079331 * x2) - 0.288679) * x2 + 0.995354) * x;
 
   //  an even more accurate alternative, less fast
   //  return ((((-0.0389929 * x2) + 0.1462766) * x2 - 0.3211819) * x2 + 0.9992150) * x;
+}
+
+
+float atanFast(float x)
+{
+  //  remove two test will limit the input range but makes it even faster.
+  if ( x > 1)  return ( M_PI_2) - atanHelper(1.0 / x);
+  if ( x < -1) return (-M_PI_2) - atanHelper(1.0 / x);
+  return atanHelper(x);
 }
 
 
